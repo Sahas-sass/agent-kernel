@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sprout, CloudRain, TrendingUp, Bug, AlertCircle } from 'lucide-react';
 
+type ChatMessage = { role: string; content: string } | { text: any; type: string };
+
 export default function YieldSyncDashboard() {
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -125,23 +127,28 @@ export default function YieldSyncDashboard() {
           )}
 
           {/* Chat Messages */}
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-              <div className={`max-w-[90%] sm:max-w-[80%] rounded-3xl p-5 shadow-xl ${
-                msg.role === 'user' 
-                  ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-br-sm border border-emerald-400/30' 
-                  : 'bg-slate-800/80 backdrop-blur-md text-slate-100 rounded-bl-sm border border-white/10'
-              }`}>
-                {msg.role === 'agent' && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sprout className="w-4 h-4 text-emerald-400" />
-                    <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">YieldSync AI</span>
-                  </div>
-                )}
-                <p className="leading-relaxed whitespace-pre-wrap text-[15px]">{msg.content}</p>
+          {messages.map((msg, idx) => {
+            const role = 'role' in msg ? msg.role : msg.type === 'ai' ? 'agent' : msg.type;
+            const content = 'content' in msg ? msg.content : String(msg.text ?? '');
+
+            return (
+              <div key={idx} className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                <div className={`max-w-[90%] sm:max-w-[80%] rounded-3xl p-5 shadow-xl ${
+                  role === 'user'
+                    ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-br-sm border border-emerald-400/30'
+                    : 'bg-slate-800/80 backdrop-blur-md text-slate-100 rounded-bl-sm border border-white/10'
+                }`}>
+                  {role === 'agent' && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sprout className="w-4 h-4 text-emerald-400" />
+                      <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">YieldSync AI</span>
+                    </div>
+                  )}
+                  <p className="leading-relaxed whitespace-pre-wrap text-[15px]">{content}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Loading Indicator */}
           {isLoading && (
