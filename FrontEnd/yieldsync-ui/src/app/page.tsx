@@ -28,35 +28,23 @@ export default function YieldSyncDashboard() {
     setIsLoading(true);
 
     try {
+      const userInput = text;
+
       const response = await fetch('/api/v1/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: text,
-          session_id: 'farmer_pro',
-          agent: 'agronomy_advisor'
-        }),
+        body: JSON.stringify({ prompt: userInput, session_id: 'xyz', agent: 'agronomy_advisor' })
       });
 
       const data = await response.json();
 
-      // 1. Extract the content safely
-      // If the backend returns { result: { text: "..." } }, we get the text
-      // If it returns a string, we use it directly
-      const aiResponseText = typeof data.result === 'object'
-        ? (data.result?.text || JSON.stringify(data.result))
+      // 1. EXTRACT: Get the string, even if the backend returns a nested object
+      const aiMessage = typeof data.result === 'object'
+        ? (data.result.text || data.result.message || JSON.stringify(data.result))
         : data.result;
 
-      // 2. Normalize into the format your UI expects
-      const normalizedMessage = {
-        role: 'assistant',
-        content: response.ok && aiResponseText
-          ? String(aiResponseText)
-          : `Server Error: ${JSON.stringify(data)}`
-      };
-
-      // 3. Update the state
-      setMessages((prev) => [...prev, normalizedMessage]);
+      // 2. NORMALIZE: Put it into the format your existing chat component expects
+      setMessages((prev) => [...prev, { role: 'assistant', content: aiMessage }]);
 
     } catch (error) {
       setMessages((prev) => [
