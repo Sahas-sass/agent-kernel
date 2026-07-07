@@ -37,7 +37,15 @@ export default function YieldSyncDashboard() {
       });
 
       const data = await response.json();
-      setMessages((prev) => [...prev, { role: 'agent', content: data.result }]);
+      
+      // NEW: Check if the response was successful (HTTP 200)
+      if (response.ok && data.result) {
+        setMessages((prev) => [...prev, { role: 'agent', content: data.result }]);
+      } else {
+        // If it failed, print the exact error the server sent back
+        setMessages((prev) => [...prev, { role: 'agent', content: `Server Error: ${JSON.stringify(data)}` }]);
+      }
+
     } catch (error) {
       setMessages((prev) => [
         ...prev, 
