@@ -27,37 +27,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-import inspect
+
 
 @app.post("/api/v1/chat")
 async def chat_endpoint(request: Request):
     data = await request.json()
     
-    # Extract data from the incoming JSON
-    prompt_text = data.get("prompt")
-    session_id = data.get("session_id")
-    agent_instance = module.get_agent(data.get("agent"))
-    
-    # INSPECT the method signature to find out what it actually wants
-    sig = inspect.signature(module.runner.run)
-    params = list(sig.parameters.keys())
-    
-    # Log the exact parameter names it expects
-    print(f"DEBUG - Runner expects these parameters: {params}")
+    # Map the JSON body to the exact keys the framework demands
+    execution_params = {
+        "agent": module.get_agent(data.get("agent")),
+        "session": data.get("session_id"),
+        "requests": data.get("prompt")  # 'requests' is the parameter it actually wants
+    }
     
     try:
-        # Create a dictionary using the exact parameter names the framework demands
-        # We assume the first parameter is the agent and the second/third are inputs
-        kwargs = {
-            params[0]: agent_instance,
-            params[1]: prompt_text,
-            params[2]: session_id
-        }
-        
-        response = await module.runner.run(**kwargs)
+        response = await module.runner.run(**execution_params)
         return {"result": response}
     except Exception as e:
-        return {"error": f"Framework expects {params}. Details: {str(e)}"}
+        print(f"CRITICAL DEBUG - Final Error: {str(e)}")
+        return {"error": str(e)}
 
 
 @app.get("/")
