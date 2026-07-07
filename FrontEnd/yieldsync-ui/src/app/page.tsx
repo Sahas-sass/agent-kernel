@@ -39,19 +39,29 @@ export default function YieldSyncDashboard() {
       });
 
       const data = await response.json();
-      
-      // NEW: Check if the response was successful (HTTP 200)
-      if (response.ok && data.result) {
-        setMessages((prev) => [...prev, { role: 'agent', content: data.result }]);
-      } else {
-        // If it failed, print the exact error the server sent back
-        setMessages((prev) => [...prev, { role: 'agent', content: `Server Error: ${JSON.stringify(data)}` }]);
-      }
+
+      // 1. Extract the content safely
+      // If the backend returns { result: { text: "..." } }, we get the text
+      // If it returns a string, we use it directly
+      const aiResponseText = typeof data.result === 'object'
+        ? (data.result?.text || JSON.stringify(data.result))
+        : data.result;
+
+      // 2. Normalize into the format your UI expects
+      const normalizedMessage = {
+        role: 'assistant',
+        content: response.ok && aiResponseText
+          ? String(aiResponseText)
+          : `Server Error: ${JSON.stringify(data)}`
+      };
+
+      // 3. Update the state
+      setMessages((prev) => [...prev, normalizedMessage]);
 
     } catch (error) {
       setMessages((prev) => [
         ...prev, 
-        { role: 'agent', content: 'Connection error. Please ensure the YieldSync backend is running.' }
+        { role: 'assistant', content: 'Connection error. Please ensure the YieldSync backend is running.' }
       ]);
     } finally {
       setIsLoading(false);
