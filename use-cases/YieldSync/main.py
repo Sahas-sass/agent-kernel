@@ -36,20 +36,20 @@ async def chat_endpoint(request: Request):
     agent_name = data.get("agent")
     
     try:
-        # The 'runner' is the actual engine inside the module
-        # We use the agent name to select the right one from the module's agent list
         agent_instance = module.get_agent(agent_name)
         
-        # This is the standard execution pattern for AgentKernel
+        # We try 'prompt' instead of 'message'
         response = await module.runner.run(
             agent=agent_instance, 
-            message=prompt, 
+            prompt=prompt, 
             session_id=session_id
         )
         return {"result": response}
     except Exception as e:
+        # If this fails, we will see the correct parameter name in the logs
+        print(f"DEBUG - Full Error: {str(e)}")
         return {"error": str(e)}
-
+        
 @app.get("/")
 def health():
     return {"status": "LIVE"}
