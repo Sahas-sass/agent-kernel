@@ -37,6 +37,7 @@ agronomy_agent = Agent(
 
 # 1. This prevents Linux from deleting your routes!
 active_module = OpenAIModule([agronomy_agent])
+RESTAPI.add(active_module)
 
 # 2. Add Health Check
 from fastapi import APIRouter
