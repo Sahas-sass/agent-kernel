@@ -80,4 +80,5 @@ def diagnose_crop_disease(crop_name: str, symptoms: str) -> str:
                 return diagnosis
                 
     return f"I could not find an exact match for those symptoms on {crop_name} in my database. Recommend taking a photo to your local extension officer."
+
     
