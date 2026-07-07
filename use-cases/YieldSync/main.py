@@ -37,9 +37,22 @@ agronomy_agent = Agent(
     ]
 )
 
-# 2. Register the agent with Agent Kernel's OpenAI integration
+# ... (keep your tools imports and agronomy_agent configuration the same) ...
+
+# 1. Register the agent
 OpenAIModule([agronomy_agent])
 
-# 3. Boot up the framework's internal API server
+# --- 2. NEW: Add a diagnostic health check route ---
+from fastapi import APIRouter
+health_router = APIRouter()
+
+@health_router.get("/")
+def health_check():
+    return {"status": "YieldSync Backend is completely LIVE and healthy!"}
+
+RESTAPI.add(router=health_router)
+# ---------------------------------------------------
+
+# 3. Boot the server
 if __name__ == "__main__":
     RESTAPI.run()
