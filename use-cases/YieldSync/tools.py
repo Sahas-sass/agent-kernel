@@ -44,3 +44,14 @@ def check_farm_history(farmer_id: str) -> str:
         data = farm_database[farmer_id]
         return f"Database Record: {farmer_id} is currently growing {data['acres']} acres of {data['crop']}. Status: {data['status']}."
     return f"No planting records found in the database for {farmer_id}."
+
+
+@function_tool
+def get_weather_forecast(location: str) -> str:
+    """
+    Checks the 5-day weather forecast for a specific farming location.
+    Use this to advise farmers on the best days to plant, harvest, or apply fertilizer.
+    """
+    # Mocking a forecast for the hackathon
+    return f"Weather Alert for {location}: Heavy afternoon thunderstorms expected for the next 48 hours. Days 3-5 will be mostly sunny and dry."
+
