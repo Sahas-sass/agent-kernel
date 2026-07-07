@@ -31,24 +31,21 @@ app.add_middleware(
 async def chat_endpoint(request: Request):
     data = await request.json()
     
-    # Map the JSON body to the parameters the Runner expects
-    # We use a dictionary to avoid "unexpected keyword argument" errors
+    # Mapping to the exact keys the framework demanded
     execution_params = {
         "agent": module.get_agent(data.get("agent")),
-        "session_id": data.get("session_id"),
-        "message": data.get("prompt") # We try 'message' again now that we are using the runner directly
+        "session": data.get("session_id"), # Changed from session_id
+        "message": data.get("prompt")       # Changed back to message
     }
     
     try:
-        # Use dictionary unpacking (**) to bypass keyword naming constraints
         response = await module.runner.run(**execution_params)
         return {"result": response}
     except Exception as e:
-        # If this fails, this specific line will print exactly what it's missing
-        print(f"CRITICAL DEBUG - Error: {str(e)}")
+        print(f"CRITICAL DEBUG - Final Error: {str(e)}")
         return {"error": str(e)}
 
-        
+
 @app.get("/")
 def health():
     return {"status": "LIVE"}
