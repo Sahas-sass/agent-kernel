@@ -10,7 +10,7 @@ from tools import get_market_price
 # 1. Configure the Agronomy Advisor Agent
 agronomy_agent = Agent(
     name="agronomy_advisor",
-    model="llama3-8b-8192",
+    model="llama-3.3-70b-versatile",
     instructions=(
         "You are an expert Agricultural Consultant for the YieldSync project. "
         "Your goal is to help rural farmers optimize crop yields and sell their harvest at the best possible prices. "
