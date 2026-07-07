@@ -35,9 +35,8 @@ agronomy_agent = Agent(
     ]
 )
 
-# 1. This prevents Linux from deleting your routes!
+# 1. Initialize the agent (this AUTOMATICALLY mounts the /api/v1/chat route)
 active_module = OpenAIModule([agronomy_agent])
-RESTAPI.add(active_module)
 
 # 2. Add Health Check
 from fastapi import APIRouter
