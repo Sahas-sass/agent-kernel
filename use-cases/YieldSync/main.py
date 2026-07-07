@@ -5,7 +5,6 @@ from agentkernel.api import RESTAPI
 from agentkernel.openai import OpenAIModule
 from agents import Agent 
 
-# IMPORT ALL YOUR TOOLS HERE
 from tools import (
     get_market_price, 
     record_crop_planting, 
@@ -14,7 +13,6 @@ from tools import (
     diagnose_crop_disease
 )
 
-# Configure the Agronomy Advisor Agent
 agronomy_agent = Agent(
     name="agronomy_advisor",
     model="llama-3.3-70b-versatile",
@@ -37,7 +35,7 @@ agronomy_agent = Agent(
     ]
 )
 
-# 1. Register the agent
+# 1. This prevents Linux from deleting your routes!
 active_module = OpenAIModule([agronomy_agent])
 
 # 2. Add Health Check
@@ -50,18 +48,6 @@ def health_check():
 
 RESTAPI.add(router=health_router)
 
-# --- 3. THE CORS CHEAT CODE ---
-from fastapi.middleware.cors import CORSMiddleware
-
-RESTAPI.app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], # This tells Python to accept messages from ANY frontend
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-# -----------------------------------
-
-# 4. Boot the server
+# 3. Boot the server
 if __name__ == "__main__":
     RESTAPI.run()
