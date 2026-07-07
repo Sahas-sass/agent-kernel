@@ -31,15 +31,23 @@ app.add_middleware(
 async def chat_endpoint(request: Request):
     data = await request.json()
     
-    # The framework expects a specific class, not just a dict.
-    # We pass the dictionary to the module's processing method.
+    # Extract the fields required by the agent
+    prompt = data.get("prompt")
+    session_id = data.get("session_id")
+    agent_name = data.get("agent")
+    
     try:
-        # Most agent frameworks process the dict directly or via a handler
-        response = await module.process(data)
-        return response
+        # The 'module' object acts as a runner. 
+        # We invoke the agent using the standard framework execution call:
+        response = await module.invoke(
+            prompt=prompt, 
+            session_id=session_id, 
+            agent=agent_name
+        )
+        return {"result": response}
     except Exception as e:
-        # If it crashes, this will print the exact reason in the Render logs
-        print(f"CRASH DETAILS: {str(e)}")
+        # If .invoke() isn't the right method, this will tell us exactly what IS
+        print(f"DEBUG - Available methods: {dir(module)}")
         return {"error": str(e)}
 
 @app.get("/")
