@@ -1,6 +1,7 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._generate_schema")
 
+from tools import get_market_price, record_crop_planting, check_farm_history
 from agentkernel.api import RESTAPI
 from agentkernel.openai import OpenAIModule
 from agents import Agent 
@@ -16,10 +17,12 @@ agronomy_agent = Agent(
         "Your goal is to help rural farmers optimize crop yields and sell their harvest at the best possible prices. "
         "You speak plainly and clearly to farmers, avoiding overly complex scientific jargon. "
         "Always use the get_market_price tool to check real wholesale data before advising a farmer on where or when to sell. "
+        "If a farmer tells you they just planted a crop, use the record_crop_planting tool to save it to their profile. "
+        "If they ask for advice on their current farm, use the check_farm_history tool first to remember what they planted. "
         "IMPORTANT GUARDRAIL: If a farmer reports a severe biological hazard or asks for human medical advice, "
         "you must decline to answer and immediately refer them to a local medical professional or government extension officer."
     ),
-    tools=[get_market_price]
+    tools=[get_market_price, record_crop_planting, check_farm_history]
 )
 
 # 2. Register the agent with Agent Kernel's OpenAI integration
