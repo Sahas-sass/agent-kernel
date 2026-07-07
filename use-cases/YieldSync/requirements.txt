@@ -1,0 +1,4 @@
+agentkernel
+openai-agents
+fastapi[standard]
+uvicorn
