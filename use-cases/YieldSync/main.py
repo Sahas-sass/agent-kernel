@@ -30,8 +30,17 @@ app.add_middleware(
 @app.post("/api/v1/chat")
 async def chat_endpoint(request: Request):
     data = await request.json()
-    # We call the module directly to process the request
-    return await module.process(data)
+    
+    # The framework expects a specific class, not just a dict.
+    # We pass the dictionary to the module's processing method.
+    try:
+        # Most agent frameworks process the dict directly or via a handler
+        response = await module.process(data)
+        return response
+    except Exception as e:
+        # If it crashes, this will print the exact reason in the Render logs
+        print(f"CRASH DETAILS: {str(e)}")
+        return {"error": str(e)}
 
 @app.get("/")
 def health():
