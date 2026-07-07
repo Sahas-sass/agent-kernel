@@ -37,21 +37,28 @@ agronomy_agent = Agent(
     ]
 )
 
-# ... (keep your tools imports and agronomy_agent configuration the same) ...
 
-# 1. Register the agent
-OpenAIModule([agronomy_agent])
 
-# --- 2. NEW: Add a diagnostic health check route ---
+active_module = OpenAIModule([agronomy_agent])
+
+# 2. Advanced Health Check: The Route Mapper
 from fastapi import APIRouter
 health_router = APIRouter()
 
 @health_router.get("/")
 def health_check():
-    return {"status": "YieldSync Backend is completely LIVE and healthy!"}
+    try:
+        # This will dig into the framework and extract every single active URL
+        routes = [route.path for route in RESTAPI.app.routes]
+    except Exception as e:
+        routes = ["Error mapping routes: " + str(e)]
+        
+    return {
+        "status": "YieldSync Backend is LIVE", 
+        "active_routes": routes
+    }
 
 RESTAPI.add(router=health_router)
-# ---------------------------------------------------
 
 # 3. Boot the server
 if __name__ == "__main__":
