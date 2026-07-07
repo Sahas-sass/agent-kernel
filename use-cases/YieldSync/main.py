@@ -37,29 +37,31 @@ agronomy_agent = Agent(
     ]
 )
 
-
-
+# 1. Register the agent
 active_module = OpenAIModule([agronomy_agent])
 
-# 2. Advanced Health Check: The Route Mapper
+# 2. Add Health Check
 from fastapi import APIRouter
 health_router = APIRouter()
 
 @health_router.get("/")
 def health_check():
-    try:
-        # This will dig into the framework and extract every single active URL
-        routes = [route.path for route in RESTAPI.app.routes]
-    except Exception as e:
-        routes = ["Error mapping routes: " + str(e)]
-        
-    return {
-        "status": "YieldSync Backend is LIVE", 
-        "active_routes": routes
-    }
+    return {"status": "YieldSync Backend is LIVE"}
 
 RESTAPI.add(router=health_router)
 
-# 3. Boot the server
+# --- 3. THE CORS CHEAT CODE ---
+from fastapi.middleware.cors import CORSMiddleware
+
+RESTAPI.app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # This tells Python to accept messages from ANY frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# -----------------------------------
+
+# 4. Boot the server
 if __name__ == "__main__":
     RESTAPI.run()
