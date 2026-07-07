@@ -37,7 +37,7 @@ async def chat_endpoint(request: Request):
     execution_params = {
         "agent": module.get_agent(data.get("agent")),
         "session": data.get("session_id"),
-        "requests": data.get("prompt")  # 'requests' is the parameter it actually wants
+        "requests": data.get("requests") # Ensure this matches the key from the frontend
     }
     
     try:

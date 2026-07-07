@@ -33,7 +33,12 @@ export default function YieldSyncDashboard() {
       const response = await fetch('/api/v1/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userInput, session_id: 'xyz', agent: 'agronomy_advisor' })
+        body: JSON.stringify({
+          prompt: userInput,
+          session_id: 'xyz',
+          agent: 'agronomy_advisor',
+          requests: [userInput]
+        })
       });
 
       const data = await response.json();
