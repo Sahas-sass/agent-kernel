@@ -1,28 +1,40 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._generate_schema")
 
-from tools import get_market_price, record_crop_planting, check_farm_history
 from agentkernel.api import RESTAPI
 from agentkernel.openai import OpenAIModule
 from agents import Agent 
 
-from tools import get_market_price
+# IMPORT ALL YOUR TOOLS HERE
+from tools import (
+    get_market_price, 
+    record_crop_planting, 
+    check_farm_history,
+    get_weather_forecast,
+    diagnose_crop_disease
+)
 
-# 1. Configure the Agronomy Advisor Agent
+# Configure the Agronomy Advisor Agent
 agronomy_agent = Agent(
     name="agronomy_advisor",
     model="llama-3.3-70b-versatile",
     instructions=(
         "You are an expert Agricultural Consultant for the YieldSync project. "
-        "Your goal is to help rural farmers optimize crop yields and sell their harvest at the best possible prices. "
-        "You speak plainly and clearly to farmers, avoiding overly complex scientific jargon. "
-        "Always use the get_market_price tool to check real wholesale data before advising a farmer on where or when to sell. "
-        "If a farmer tells you they just planted a crop, use the record_crop_planting tool to save it to their profile. "
-        "If they ask for advice on their current farm, use the check_farm_history tool first to remember what they planted. "
+        "Your goal is to help rural Sri Lankan farmers optimize crop yields. "
+        "MULTI-LANGUAGE SUPPORT: You are fluent in English, Sinhala, and Tamil. ALWAYS reply in the exact language the farmer uses. "
+        "Always use your tools to provide data-backed answers. "
+        "If they ask about weather, use get_weather_forecast. "
+        "If they describe sick plants, use diagnose_crop_disease to help them. "
         "IMPORTANT GUARDRAIL: If a farmer reports a severe biological hazard or asks for human medical advice, "
-        "you must decline to answer and immediately refer them to a local medical professional or government extension officer."
+        "you must decline to answer and refer them to a medical professional."
     ),
-    tools=[get_market_price, record_crop_planting, check_farm_history]
+    tools=[
+        get_market_price, 
+        record_crop_planting, 
+        check_farm_history, 
+        get_weather_forecast, 
+        diagnose_crop_disease
+    ]
 )
 
 # 2. Register the agent with Agent Kernel's OpenAI integration
