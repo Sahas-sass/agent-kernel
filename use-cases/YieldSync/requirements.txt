@@ -1,4 +1,7 @@
-agentkernel
-openai-agents
-fastapi[standard]
-uvicorn
+agentkernel==0.2.10
+openai-agents==0.18.0
+fastapi==0.139.0
+pydantic==2.13.4
+pydantic-core==2.46.4
+pydantic-settings==2.14.2
+uvicorn==0.50.2
