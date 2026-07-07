@@ -55,3 +55,29 @@ def get_weather_forecast(location: str) -> str:
     # Mocking a forecast for the hackathon
     return f"Weather Alert for {location}: Heavy afternoon thunderstorms expected for the next 48 hours. Days 3-5 will be mostly sunny and dry."
 
+@function_tool
+def diagnose_crop_disease(crop_name: str, symptoms: str) -> str:
+    """
+    Searches the agricultural database to identify plant diseases based on symptoms and suggests treatments.
+    """
+    crop = crop_name.lower().strip()
+    symptoms = symptoms.lower()
+    
+    # Mock pest & disease database
+    database = {
+        "tomato": {
+            "yellow spots": "Diagnosis: Early Blight (Fungal). Treatment: Apply a copper-based fungicide, remove affected leaves, and avoid overhead watering.",
+            "holes in leaves": "Diagnosis: Tomato Hornworm. Treatment: Hand-pick worms, apply Bacillus thuringiensis (Bt) spray."
+        },
+        "rice": {
+            "brown lesions": "Diagnosis: Rice Blast. Treatment: Maintain proper flood levels, avoid excessive nitrogen fertilizer, apply Tricyclazole if severe."
+        }
+    }
+    
+    if crop in database:
+        for key, diagnosis in database[crop].items():
+            if key in symptoms:
+                return diagnosis
+                
+    return f"I could not find an exact match for those symptoms on {crop_name} in my database. Recommend taking a photo to your local extension officer."
+    
