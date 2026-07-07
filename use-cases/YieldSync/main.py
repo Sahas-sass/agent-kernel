@@ -31,25 +31,24 @@ app.add_middleware(
 async def chat_endpoint(request: Request):
     data = await request.json()
     
-    prompt = data.get("prompt")
+    # We use 'text' as the parameter name instead of 'prompt'
+    text_input = data.get("prompt") 
     session_id = data.get("session_id")
-    agent_name = data.get("agent")
+    agent_instance = module.get_agent(data.get("agent"))
     
     try:
-        agent_instance = module.get_agent(agent_name)
-        
-        # We try 'prompt' instead of 'message'
+        # Most runners expect the input text in the 'text' argument
         response = await module.runner.run(
             agent=agent_instance, 
-            prompt=prompt, 
+            text=text_input, 
             session_id=session_id
         )
         return {"result": response}
     except Exception as e:
-        # If this fails, we will see the correct parameter name in the logs
+        # This will show us the EXACT arguments the method wants
         print(f"DEBUG - Full Error: {str(e)}")
         return {"error": str(e)}
-        
+
 @app.get("/")
 def health():
     return {"status": "LIVE"}
