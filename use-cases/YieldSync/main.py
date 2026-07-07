@@ -31,23 +31,26 @@ app.add_middleware(
 async def chat_endpoint(request: Request):
     data = await request.json()
     
-    # Extract the fields required by the agent
     prompt = data.get("prompt")
     session_id = data.get("session_id")
     agent_name = data.get("agent")
     
+    # This list will show up in your Render Logs!
+    methods = dir(module)
+    print(f"DEBUG: Available methods on module: {methods}")
+    
     try:
-        # The 'module' object acts as a runner. 
-        # We invoke the agent using the standard framework execution call:
-        response = await module.invoke(
-            prompt=prompt, 
-            session_id=session_id, 
-            agent=agent_name
-        )
+        # Try the most likely method name for AgentKernel/OpenAIModule
+        # Common candidates: run, chat, ask, execute
+        if hasattr(module, 'run'):
+            response = await module.run(prompt=prompt, session_id=session_id, agent=agent_name)
+        elif hasattr(module, 'chat'):
+            response = await module.chat(prompt=prompt, session_id=session_id, agent=agent_name)
+        else:
+            return {"error": f"No valid method found. Available: {methods}"}
+            
         return {"result": response}
     except Exception as e:
-        # If .invoke() isn't the right method, this will tell us exactly what IS
-        print(f"DEBUG - Available methods: {dir(module)}")
         return {"error": str(e)}
 
 @app.get("/")
