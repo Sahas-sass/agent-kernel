@@ -35,20 +35,17 @@ async def chat_endpoint(request: Request):
     session_id = data.get("session_id")
     agent_name = data.get("agent")
     
-    # This list will show up in your Render Logs!
-    methods = dir(module)
-    print(f"DEBUG: Available methods on module: {methods}")
-    
     try:
-        # Try the most likely method name for AgentKernel/OpenAIModule
-        # Common candidates: run, chat, ask, execute
-        if hasattr(module, 'run'):
-            response = await module.run(prompt=prompt, session_id=session_id, agent=agent_name)
-        elif hasattr(module, 'chat'):
-            response = await module.chat(prompt=prompt, session_id=session_id, agent=agent_name)
-        else:
-            return {"error": f"No valid method found. Available: {methods}"}
-            
+        # The 'runner' is the actual engine inside the module
+        # We use the agent name to select the right one from the module's agent list
+        agent_instance = module.get_agent(agent_name)
+        
+        # This is the standard execution pattern for AgentKernel
+        response = await module.runner.run(
+            agent=agent_instance, 
+            message=prompt, 
+            session_id=session_id
+        )
         return {"result": response}
     except Exception as e:
         return {"error": str(e)}
