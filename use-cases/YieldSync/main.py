@@ -33,18 +33,35 @@ app.add_middleware(
 async def chat_endpoint(request: Request):
     data = await request.json()
     
-    # Map the JSON body to the exact keys the framework demands
+    # 1. Grab the raw text from the frontend
+    user_text = data.get("prompt")
+    
+    # 2. THE SHOTGUN PAYLOAD
+    # We give the framework every conceivable key it might be looking for.
+    # It will simply grab the one it wants and ignore the rest!
+    universal_message = {
+        "text": user_text,
+        "content": user_text,
+        "message": user_text,
+        "prompt": user_text,
+        "query": user_text,
+        "input": user_text,
+        "role": "user",
+        "type": "text"
+    }
+    
+    # 3. Package it into the requests array exactly as the runner expects
     execution_params = {
-        "agent": module.get_agent(data.get("agent")),
-        "session": data.get("session_id"),
-        "requests": data.get("requests") # Ensure this matches the key from the frontend
+        "agent": module.get_agent(data.get("agent", "agronomy_advisor")),
+        "session": data.get("session_id", "default_session"),
+        "requests": [universal_message]
     }
     
     try:
         response = await module.runner.run(**execution_params)
         return {"result": response}
     except Exception as e:
-        print(f"CRITICAL DEBUG - Final Error: {str(e)}")
+        print(f"CRITICAL ERROR: {str(e)}")
         return {"error": str(e)}
 
 
