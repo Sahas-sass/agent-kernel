@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   Send,
   Sprout,
   CloudRain,
   TrendingUp,
   Bug,
-  AlertCircle,
 } from "lucide-react";
 
-type ChatMessage =
-  | { role: string; content: string }
-  | { text: any; type: string };
+type ChatMessage = {
+  role: "user" | "assistant" | "agent";
+  content: string;
+};
 
 export default function YieldSyncDashboard() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -20,7 +21,7 @@ export default function YieldSyncDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to the bottom when a new message arrives
+  // Auto-scroll to the bottom when a new message or loading state triggers
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -33,12 +34,11 @@ export default function YieldSyncDashboard() {
     if (!text.trim()) return;
 
     setInput("");
+    // 1. Instantly push user message to UI
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setIsLoading(true);
 
     try {
-      const userInput = text;
-
       const response = await fetch("https://agent-kernel-ir1p.onrender.com/run", {
         method: "POST",
         headers: {
@@ -46,26 +46,31 @@ export default function YieldSyncDashboard() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          prompt: userInput,
+          prompt: text,
           agent: "agronomy_advisor",
           session_id: "test-123",
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`Server returned status ${response.status}`);
+      }
+
       const data = await response.json();
-      const aiTextResponse = data.result;
+      const aiTextResponse = data.result || "No explicit response text found.";
 
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: aiTextResponse },
       ]);
     } catch (error) {
+      console.error("Backend request failed:", error);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content:
-            "Connection error. Please ensure the YieldSync backend is running.",
+            "Connection error. Please ensure the YieldSync backend is active and online.",
         },
       ]);
     } finally {
@@ -75,10 +80,11 @@ export default function YieldSyncDashboard() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage(input);
+    if (!isLoading) {
+      sendMessage(input);
+    }
   };
 
-  // Quick Action Prompts for the empty state
   const quickActions = [
     {
       icon: <TrendingUp className="w-5 h-5" />,
@@ -122,10 +128,10 @@ export default function YieldSyncDashboard() {
         </div>
       </nav>
 
-      {/* Main Chat Area (Scrollable) */}
+      {/* Main Chat Area */}
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 scroll-smooth">
         <div className="max-w-3xl mx-auto py-8 flex flex-col gap-6">
-          {/* Empty State / Welcome Screen */}
+          {/* Empty Welcome Screen */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center mt-10 sm:mt-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-2xl">
@@ -144,6 +150,7 @@ export default function YieldSyncDashboard() {
                 {quickActions.map((action, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => sendMessage(action.text)}
                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-slate-800/40 hover:bg-slate-700/50 border border-white/5 hover:border-emerald-500/30 transition-all group text-center"
                   >
@@ -159,26 +166,23 @@ export default function YieldSyncDashboard() {
             </div>
           )}
 
-          {/* Chat Messages */}
+          {/* Render Active Messages */}
           {messages.map((msg, idx) => {
-            const role =
-              "role" in msg ? msg.role : msg.type === "ai" ? "agent" : msg.type;
-            const content =
-              "content" in msg ? msg.content : String(msg.text ?? "");
+            const isUser = msg.role === "user";
 
             return (
               <div
                 key={idx}
-                className={`flex ${role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                className={`flex ${isUser ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
               >
                 <div
                   className={`max-w-[90%] sm:max-w-[80%] rounded-3xl p-5 shadow-xl ${
-                    role === "user"
+                    isUser
                       ? "bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-br-sm border border-emerald-400/30"
                       : "bg-slate-800/80 backdrop-blur-md text-slate-100 rounded-bl-sm border border-white/10"
                   }`}
                 >
-                  {role === "agent" && (
+                  {!isUser && (
                     <div className="flex items-center gap-2 mb-2">
                       <Sprout className="w-4 h-4 text-emerald-400" />
                       <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
@@ -186,15 +190,17 @@ export default function YieldSyncDashboard() {
                       </span>
                     </div>
                   )}
-                  <p className="leading-relaxed whitespace-pre-wrap text-[15px]">
-                    {content}
-                  </p>
+                  
+                  {/* Markdown Rendering Support for lists, headings, and bolds */}
+                  <div className="prose prose-invert max-w-none text-[15px] leading-relaxed">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
                 </div>
               </div>
             );
           })}
 
-          {/* Loading Indicator */}
+          {/* Clean Pulse Loading Indicator */}
           {isLoading && (
             <div className="flex justify-start animate-in fade-in">
               <div className="bg-slate-800/80 backdrop-blur-md rounded-3xl rounded-bl-sm p-5 border border-white/10 flex gap-2 items-center shadow-xl">
@@ -208,7 +214,7 @@ export default function YieldSyncDashboard() {
         </div>
       </main>
 
-      {/* Modern Input Area */}
+      {/* Modern Fixed Input Form */}
       <div className="flex-none p-4 sm:p-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto relative">
           <div className="relative group">
@@ -219,6 +225,7 @@ export default function YieldSyncDashboard() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Message your Agronomy Advisor..."
+                disabled={isLoading}
                 className="w-full bg-transparent py-4 pl-6 pr-14 text-slate-100 placeholder:text-slate-500 focus:outline-none text-[15px]"
               />
               <button
@@ -232,8 +239,7 @@ export default function YieldSyncDashboard() {
           </div>
           <div className="text-center mt-3">
             <p className="text-[11px] text-slate-500 font-medium">
-              YieldSync AI can make mistakes. Always verify critical pesticide
-              and market data.
+              YieldSync AI can make mistakes. Always verify critical pesticide and market data.
             </p>
           </div>
         </form>
