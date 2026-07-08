@@ -19,7 +19,19 @@ export default function YieldSyncDashboard() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("default-session");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let currentSessionId = sessionStorage.getItem("yieldsync_session_id");
+
+    if (!currentSessionId) {
+      currentSessionId = `session_${Math.random().toString(36).substring(2, 11)}_${Date.now()}`;
+      sessionStorage.setItem("yieldsync_session_id", currentSessionId);
+    }
+
+    setSessionId(currentSessionId);
+  }, []);
 
   // Auto-scroll to the bottom when a new message or loading state triggers
   const scrollToBottom = () => {
@@ -48,7 +60,7 @@ export default function YieldSyncDashboard() {
         body: JSON.stringify({
           prompt: text,
           agent: "agronomy_advisor",
-          session_id: "test-123",
+          session_id: sessionId,
         }),
       });
 
