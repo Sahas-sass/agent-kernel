@@ -1,19 +1,28 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Send, Sprout, CloudRain, TrendingUp, Bug, AlertCircle } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import {
+  Send,
+  Sprout,
+  CloudRain,
+  TrendingUp,
+  Bug,
+  AlertCircle,
+} from "lucide-react";
 
-type ChatMessage = { role: string; content: string } | { text: any; type: string };
+type ChatMessage =
+  | { role: string; content: string }
+  | { text: any; type: string };
 
 export default function YieldSyncDashboard() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to the bottom when a new message arrives
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -23,38 +32,52 @@ export default function YieldSyncDashboard() {
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
 
-    setInput('');
-    setMessages((prev) => [...prev, { role: 'user', content: text }]);
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
     setIsLoading(true);
 
     try {
       const userInput = text;
 
-      const response = await fetch('/api/v1/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/v1/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: userInput,
-          session_id: 'xyz',
-          agent: 'agronomy_advisor',
-          requests: [userInput]
-        })
+          session_id: "xyz",
+          agent: "agronomy_advisor",
+          requests: [
+            {
+              role: "user",
+              content: userInput,
+            },
+          ],
+        }),
       });
 
       const data = await response.json();
 
       // 1. EXTRACT: Get the string, even if the backend returns a nested object
-      const aiMessage = typeof data.result === 'object'
-        ? (data.result.text || data.result.message || JSON.stringify(data.result))
-        : data.result;
+      const aiMessage =
+        typeof data.result === "object"
+          ? data.result.text ||
+            data.result.message ||
+            JSON.stringify(data.result)
+          : data.result;
 
       // 2. NORMALIZE: Put it into the format your existing chat component expects
-      setMessages((prev) => [...prev, { role: 'assistant', content: aiMessage }]);
-
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: aiMessage },
+      ]);
     } catch (error) {
       setMessages((prev) => [
-        ...prev, 
-        { role: 'assistant', content: 'Connection error. Please ensure the YieldSync backend is running.' }
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Connection error. Please ensure the YieldSync backend is running.",
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -68,14 +91,25 @@ export default function YieldSyncDashboard() {
 
   // Quick Action Prompts for the empty state
   const quickActions = [
-    { icon: <TrendingUp className="w-5 h-5" />, text: "What is the market price for rice?", label: "Market Prices" },
-    { icon: <CloudRain className="w-5 h-5" />, text: "What is the weather forecast for Anuradhapura?", label: "Weather" },
-    { icon: <Bug className="w-5 h-5" />, text: "My tomato leaves have yellow spots. Help!", label: "Pest Control" },
+    {
+      icon: <TrendingUp className="w-5 h-5" />,
+      text: "What is the market price for rice?",
+      label: "Market Prices",
+    },
+    {
+      icon: <CloudRain className="w-5 h-5" />,
+      text: "What is the weather forecast for Anuradhapura?",
+      label: "Weather",
+    },
+    {
+      icon: <Bug className="w-5 h-5" />,
+      text: "My tomato leaves have yellow spots. Help!",
+      label: "Pest Control",
+    },
   ];
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-950 via-[#0a192f] to-slate-900 text-slate-200 font-sans selection:bg-emerald-500/30">
-      
       {/* Premium Glassmorphism Navbar */}
       <nav className="flex-none z-50 border-b border-white/5 bg-slate-950/60 backdrop-blur-xl shadow-lg">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -87,7 +121,9 @@ export default function YieldSyncDashboard() {
               <h1 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2">
                 YieldSync
               </h1>
-              <p className="text-xs text-emerald-400/80 font-medium">Agronomy Intelligence AI</p>
+              <p className="text-xs text-emerald-400/80 font-medium">
+                Agronomy Intelligence AI
+              </p>
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5">
@@ -100,18 +136,21 @@ export default function YieldSyncDashboard() {
       {/* Main Chat Area (Scrollable) */}
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 scroll-smooth">
         <div className="max-w-3xl mx-auto py-8 flex flex-col gap-6">
-          
           {/* Empty State / Welcome Screen */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center mt-10 sm:mt-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-2xl">
                 <Sprout className="w-10 h-10 text-emerald-400" />
               </div>
-              <h2 className="text-3xl font-bold text-white mb-3 text-center">How can I help your farm today?</h2>
+              <h2 className="text-3xl font-bold text-white mb-3 text-center">
+                How can I help your farm today?
+              </h2>
               <p className="text-slate-400 text-center max-w-md mb-10 leading-relaxed">
-                I am your AI advisor. I can diagnose crop diseases, track your planting history, check weather, and monitor market prices in Sinhala, Tamil, or English.
+                I am your AI advisor. I can diagnose crop diseases, track your
+                planting history, check weather, and monitor market prices in
+                Sinhala, Tamil, or English.
               </p>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
                 {quickActions.map((action, idx) => (
                   <button
@@ -122,7 +161,9 @@ export default function YieldSyncDashboard() {
                     <div className="text-emerald-400 group-hover:scale-110 transition-transform">
                       {action.icon}
                     </div>
-                    <span className="text-sm font-medium text-slate-300">{action.label}</span>
+                    <span className="text-sm font-medium text-slate-300">
+                      {action.label}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -131,23 +172,34 @@ export default function YieldSyncDashboard() {
 
           {/* Chat Messages */}
           {messages.map((msg, idx) => {
-            const role = 'role' in msg ? msg.role : msg.type === 'ai' ? 'agent' : msg.type;
-            const content = 'content' in msg ? msg.content : String(msg.text ?? '');
+            const role =
+              "role" in msg ? msg.role : msg.type === "ai" ? "agent" : msg.type;
+            const content =
+              "content" in msg ? msg.content : String(msg.text ?? "");
 
             return (
-              <div key={idx} className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-                <div className={`max-w-[90%] sm:max-w-[80%] rounded-3xl p-5 shadow-xl ${
-                  role === 'user'
-                    ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-br-sm border border-emerald-400/30'
-                    : 'bg-slate-800/80 backdrop-blur-md text-slate-100 rounded-bl-sm border border-white/10'
-                }`}>
-                  {role === 'agent' && (
+              <div
+                key={idx}
+                className={`flex ${role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+              >
+                <div
+                  className={`max-w-[90%] sm:max-w-[80%] rounded-3xl p-5 shadow-xl ${
+                    role === "user"
+                      ? "bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-br-sm border border-emerald-400/30"
+                      : "bg-slate-800/80 backdrop-blur-md text-slate-100 rounded-bl-sm border border-white/10"
+                  }`}
+                >
+                  {role === "agent" && (
                     <div className="flex items-center gap-2 mb-2">
                       <Sprout className="w-4 h-4 text-emerald-400" />
-                      <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">YieldSync AI</span>
+                      <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+                        YieldSync AI
+                      </span>
                     </div>
                   )}
-                  <p className="leading-relaxed whitespace-pre-wrap text-[15px]">{content}</p>
+                  <p className="leading-relaxed whitespace-pre-wrap text-[15px]">
+                    {content}
+                  </p>
                 </div>
               </div>
             );
@@ -180,7 +232,7 @@ export default function YieldSyncDashboard() {
                 placeholder="Message your Agronomy Advisor..."
                 className="w-full bg-transparent py-4 pl-6 pr-14 text-slate-100 placeholder:text-slate-500 focus:outline-none text-[15px]"
               />
-              <button 
+              <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
                 className="absolute right-2 p-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-2xl transition-all disabled:opacity-50 disabled:hover:bg-emerald-500 disabled:cursor-not-allowed flex items-center justify-center shadow-lg"
@@ -190,7 +242,10 @@ export default function YieldSyncDashboard() {
             </div>
           </div>
           <div className="text-center mt-3">
-            <p className="text-[11px] text-slate-500 font-medium">YieldSync AI can make mistakes. Always verify critical pesticide and market data.</p>
+            <p className="text-[11px] text-slate-500 font-medium">
+              YieldSync AI can make mistakes. Always verify critical pesticide
+              and market data.
+            </p>
           </div>
         </form>
       </div>
