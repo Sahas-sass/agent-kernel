@@ -39,33 +39,21 @@ export default function YieldSyncDashboard() {
     try {
       const userInput = text;
 
-      const response = await fetch("/api/v1/chat", {
+      const response = await fetch("https://agent-kernel-ir1p.onrender.com/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           prompt: userInput,
-          session_id: "xyz",
           agent: "agronomy_advisor",
-          requests: [
-            {
-              type: "text",
-              text: userInput,
-            },
-          ],
+          session_id: "xyz",
         }),
       });
 
-      const data = await response.json();
+      const aiMessage = await response.json();
 
-      // 1. EXTRACT: Get the string, even if the backend returns a nested object
-      const aiMessage =
-        typeof data.result === "object"
-          ? data.result.text ||
-            data.result.message ||
-            JSON.stringify(data.result)
-          : data.result;
-
-      // 2. NORMALIZE: Put it into the format your existing chat component expects
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: aiMessage },
