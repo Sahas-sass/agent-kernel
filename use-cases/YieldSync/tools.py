@@ -1,25 +1,26 @@
 from agents import function_tool
 
 @function_tool
-def get_market_price(crop_name: str, region: str) -> str:
-    """
-    Fetches the current wholesale market price for a given crop in a specific region.
-    """
-    # A simulated database for the competition
-    mock_database = {
-        "rice": "Rs. 120 per kg",
-        "corn": "Rs. 85 per kg",
-        "tomato": "Rs. 150 per kg",
-        "pumpkin": "Rs. 60 per kg",
-        "chili": "Rs. 400 per kg"
+def get_market_price(crop: str) -> str:
+    """Fetches the current market price for a specified crop."""
+    
+    # Standardize the input
+    crop_name = crop.lower().strip()
+    
+    # Mock database for testing
+    prices = {
+        "rice": "220.00",
+        "tomato": "150.00",
+        "corn": "90.00"
     }
     
-    crop = crop_name.lower().strip()
-    if crop in mock_database:
-        return f"The current wholesale market price for {crop_name} in {region} is {mock_database[crop]}."
+    price = prices.get(crop_name)
+    
+    if price:
+        # Return a highly explicit string so the AI cannot misunderstand it
+        return f"The current market price for 1kg of {crop_name} is {price} LKR."
     else:
-        return f"I'm sorry, but real-time price data for {crop_name} is currently unavailable in the {region} region."
-
+        return f"Sorry, I do not have current pricing data for {crop_name}."
 
 farm_database = {}
 
