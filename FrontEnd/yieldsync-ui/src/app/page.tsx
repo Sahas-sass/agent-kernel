@@ -48,15 +48,16 @@ export default function YieldSyncDashboard() {
         body: JSON.stringify({
           prompt: userInput,
           agent: "agronomy_advisor",
-          session_id: "xyz",
+          session_id: "test-123",
         }),
       });
 
-      const aiMessage = await response.json();
+      const data = await response.json();
+      const aiTextResponse = data.result;
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: aiMessage },
+        { role: "assistant", content: aiTextResponse },
       ]);
     } catch (error) {
       setMessages((prev) => [
